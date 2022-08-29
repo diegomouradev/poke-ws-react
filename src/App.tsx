@@ -1,26 +1,43 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
+import { createUseStyles } from 'react-jss';
+import GameBoard from './Components/Game/GameBoard';
+import { ApiResp } from './Components/Game/Utils/Interfaces';
+
+const useStyles = createUseStyles({
+	myApp: {
+		display: 'grid',
+		gridTemplateColumns: '100%',
+		margin: 0,
+		padding: {
+			top: 100,
+			left: 50,
+			bottom: 50,
+			right: 50,
+		},
+	},
+});
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+	const classes = useStyles();
+	const [wordList, setWordList] = useState<ApiResp[]>();
+
+	useEffect(() => {
+		(async () => {
+			const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151');
+			const result = await response.json();
+			const data = result.results;
+			await setWordList(data);
+		})();
+	}, []);
+
+	return (
+		<div className={classes.myApp}>
+			<header className="App-header">
+				<h1>Word Search Game</h1>
+			</header>
+			<div className="grid">{wordList ? <GameBoard wordList={wordList} /> : 'Loading...'}</div>
+		</div>
+	);
 }
 
 export default App;
