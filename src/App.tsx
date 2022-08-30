@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { createUseStyles } from 'react-jss';
-import GameBoard from './Components/Game/GameBoard';
-import { ApiResp } from './Components/Game/Utils/Interfaces';
+import GameCore from './Components/Game/GameCore';
+import { ApiResp, CleanData } from './Components/Game/Utils/Interfaces';
+import WordList from './Components/Game/WordList';
 
 const useStyles = createUseStyles({
 	myApp: {
@@ -15,17 +16,36 @@ const useStyles = createUseStyles({
 			right: 50,
 		},
 	},
+	grid: {
+		display: 'grid',
+		gridTemplateColumns: 'repeat(2,50%)',
+		columnGap: '30px',
+	},
 });
+
+function cleanUpData(data: ApiResp[]) {
+	const wordsToRemove = new Set();
+	wordsToRemove.add('nidoran-f');
+	wordsToRemove.add('nidoran-m');
+	wordsToRemove.add('mr-mime');
+	let dataImgUrl: CleanData[] = data.map((pokemon, i: number) => {
+		return { svg: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${i + 1}.png`, ...pokemon } as CleanData;
+	});
+	const cleanData = dataImgUrl.filter((pokemon: ApiResp, i: number) => !wordsToRemove.has(pokemon.name));
+	console.log(cleanData);
+	return cleanData;
+}
 
 function App() {
 	const classes = useStyles();
-	const [wordList, setWordList] = useState<ApiResp[]>();
+	const [wordList, setWordList] = useState<CleanData[]>();
 
 	useEffect(() => {
 		(async () => {
 			const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151');
 			const result = await response.json();
-			const data = result.results;
+			let data = result.results;
+			data = cleanUpData(data);
 			await setWordList(data);
 		})();
 	}, []);
@@ -35,7 +55,13 @@ function App() {
 			<header className="App-header">
 				<h1>Word Search Game</h1>
 			</header>
-			<div className="grid">{wordList ? <GameBoard wordList={wordList} /> : 'Loading...'}</div>
+			{wordList ? (
+				<>
+					<GameCore wordList={wordList} />
+				</>
+			) : (
+				'Loading...'
+			)}
 		</div>
 	);
 }

@@ -3,6 +3,10 @@ export interface ApiResp {
 	url: string;
 }
 
+export interface CleanData extends ApiResp {
+	svg: string;
+}
+
 export interface Location {
 	y: number;
 	x: number;

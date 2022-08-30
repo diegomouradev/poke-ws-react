@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ALPHABET, GAME_BOARD_SIZE, DIRECTIONS, GET_NEXT_TILE, IS_DIRECTION_VALID, SKIP_TILE } from './Utils/Constants';
-import { ApiResp, Location, Tile } from './Utils/Interfaces';
+import { CleanData, Location, Tile } from './Utils/Interfaces';
 import { createUseStyles } from 'react-jss';
 import LetterTile from './Tile';
 
@@ -26,7 +26,7 @@ function generateGameBoard(): string[][] {
 	return board;
 }
 
-function getRandomWord(wordList: ApiResp[], wordsInTheBoard: Set<string>): string {
+function getRandomWord(wordList: CleanData[], wordsInTheBoard: Set<string>): string {
 	const randomIndex = Math.floor(Math.random() * wordList.length);
 	let randomWord = wordList.splice(randomIndex, 1);
 	let word = randomWord[0].name;
@@ -134,7 +134,7 @@ function pickRandomLetter(): string {
 	return randomLetter;
 }
 
-function GameBoard(props: { wordList: ApiResp[] }) {
+function GameBoard(props: { wordList: CleanData[] }) {
 	const classes = useStyles();
 	let gameBoard = generateGameBoard();
 	let counter = props.wordList.length;
@@ -162,15 +162,14 @@ function GameBoard(props: { wordList: ApiResp[] }) {
 	return (
 		<div className={classes.myGameBoard}>
 			{gameBoard.map((row, i): JSX.Element => {
-					return (
-						<div key={`row-${i}`} className={`row-${i} ${classes.myRow}`}>
-							{row.map( (tile, j): JSX.Element => {
-								return <LetterTile tile={tile} index={j} />
-							})}
-						</div>
-					);
-				})	
-			}
+				return (
+					<div key={`row-${i}`} className={`row-${i} ${classes.myRow}`}>
+						{row.map((tile, j): JSX.Element => {
+							return <LetterTile tile={tile} index={j} />;
+						})}
+					</div>
+				);
+			})}
 		</div>
 	);
 }
