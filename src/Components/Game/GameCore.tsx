@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ALPHABET, GAME_BOARD_SIZE, DIRECTIONS, GET_NEXT_TILE, IS_DIRECTION_VALID, SKIP_TILE } from './Utils/Constants';
-import { CleanData, Location, Tile } from './Utils/Interfaces';
+import { CleanData, Location, Tile, WordsToWatch } from './Utils/Interfaces';
 import { createUseStyles } from 'react-jss';
 import GameBoard from './GameBoard';
 import WordList from './WordList';
@@ -21,16 +21,15 @@ function generateGameBoard(): string[][] {
 			board[i].push('_');
 		}
 	}
-	console.log('I ran!');
 	return board;
 }
 
-function getRandomWord(wordList: CleanData[], wordsInTheBoard: Set<CleanData>): CleanData {
+function getRandomWord(wordList: CleanData[], wordsInTheBoard: Map<string, WordsToWatch>): CleanData {
 	const randomIndex = Math.floor(Math.random() * wordList.length);
 	let randomWord = wordList.splice(randomIndex, 1);
 	let word = randomWord[0];
 
-	if (!wordsInTheBoard.has(word)) return word;
+	if (!wordsInTheBoard.has(word.name)) return word;
 	return getRandomWord(wordList, wordsInTheBoard);
 }
 
@@ -134,43 +133,42 @@ function pickRandomLetter(): string {
 }
 
 function GameCore(props: { wordList: CleanData[] }): JSX.Element {
-	const [finalGameBoard, setFinalGameBoard] = useState<Tile[][]>();
-	const [allTilesInTheBoard, setAllTilesInTheBoard] = useState<Set<CleanData>>();
+	const [gameBoard, setGameBoard] = useState<Tile[][]>();
+	const [wordListTiles, setWordListTiles] = useState<Map<string, WordsToWatch>>();
 	const [wordsToWatch, setWordsToWatch] = useState<Set<string>>();
 	const [wordFragment, setWordFragment] = useState<string>('');
 
 	const classes = useStyles();
 
 	useEffect(() => {
-		let gameBoard = generateGameBoard();
+		let partialGameBoard = generateGameBoard();
 		let counter = props.wordList.length;
-		const tilesInTheBoard: Set<CleanData> = new Set();
+		const tilesInTheBoard: Map<string, WordsToWatch> = new Map();
 
 		while (counter > 0) {
 			let wordList = props.wordList.slice();
 			const pokemon = getRandomWord(wordList, tilesInTheBoard);
 			const word = pokemon.name;
-			const possibleLocations = generateLocations(word, gameBoard);
+			const possibleLocations = generateLocations(word, partialGameBoard);
 			let location: unknown;
 
 			if (possibleLocations.length > 0) {
 				location = possibleLocations[Math.floor(Math.random() * possibleLocations.length)];
+				partialGameBoard = placeWordInTheGameBoard(word, location as Location, partialGameBoard);
+				tilesInTheBoard.set(pokemon.name, { ...pokemon, isFound: false } as WordsToWatch);
+				counter--;
 			} else {
-				// continue;
-				gameBoard = fillEmptySpots(gameBoard);
-				setFinalGameBoard(gameBoard as unknown as Tile[][]);
-				setAllTilesInTheBoard(tilesInTheBoard);
-				getWordsToWatch(tilesInTheBoard);
-				break;
+				counter--;
+				continue;
 			}
-			gameBoard = placeWordInTheGameBoard(word, location as Location, gameBoard);
-			tilesInTheBoard.add(pokemon);
-
-			counter--;
 		}
+		partialGameBoard = fillEmptySpots(partialGameBoard);
+		setGameBoard(partialGameBoard as unknown as Tile[][]);
+		setWordListTiles(tilesInTheBoard);
+		getWordsToWatch(tilesInTheBoard);
 	}, []);
 
-	const getWordsToWatch = (tilesInTheBoard: Set<CleanData>) => {
+	const getWordsToWatch = (tilesInTheBoard: Map<string, WordsToWatch>) => {
 		let wordsToWatch: Set<string> = new Set();
 		tilesInTheBoard.forEach((pokemon) => wordsToWatch.add(pokemon.name));
 		setWordsToWatch(wordsToWatch);
@@ -188,17 +186,21 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 		}
 	};
 
+	// const updateTileWordList()
+
 	useEffect(() => {
 		if (wordsToWatch && wordsToWatch.has(wordFragment)) {
 			console.log(`You found a wild ${wordFragment}!`);
+			// let wordFound = wordListTiles.get(wordFragment);
+			// wordFound['isFound'] = true;
 			setWordFragment('');
 		}
 	}, [wordFragment, wordsToWatch]);
 
 	return (
 		<div className={classes.grid}>
-			{finalGameBoard ? <GameBoard finalGameBoard={finalGameBoard} getWordFragmentCallback={handleWordFragment} /> : <div>Loading...</div>}
-			{allTilesInTheBoard ? <WordList wordList={allTilesInTheBoard} /> : <div>Loading...</div>}
+			{gameBoard ? <GameBoard finalGameBoard={gameBoard} getWordFragmentCallback={handleWordFragment} /> : <div>Loading...</div>}
+			{wordListTiles ? <WordList wordList={wordListTiles} /> : <div>Loading...</div>}
 		</div>
 	);
 }

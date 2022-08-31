@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 
 import { createUseStyles } from 'react-jss';
-import { CleanData, Tile } from './Utils/Interfaces';
+import { CleanData, Tile, WordsToWatch } from './Utils/Interfaces';
 
 const useStyles = createUseStyles({
 	myList: {
 		display: 'grid',
-		gridTemplateColumns: 'repeat(5,1fr)',
+		gridTemplateColumns: 'repeat(auto-fill,minmax(100px,1fr))',
 		margin: '0',
 		padding: '0',
 	},
@@ -14,10 +14,10 @@ const useStyles = createUseStyles({
 		listStyle: 'none',
 		textTransform: 'capitalize',
 		margin: '5px',
-		fontSize: '30px',
+		fontSize: '20px',
 	},
 	mySvg: {
-		width: '60px',
+		width: '80px',
 		filter: 'grayscale(1)',
 	},
 	toggleShowWordBtn: {
@@ -28,14 +28,13 @@ const useStyles = createUseStyles({
 	listWrapper: {
 		display: 'grid',
 		gridTemplateColumns: '1fr',
-		place: 'center',
 	},
 	input: {
 		display: 'none',
 	},
 });
 
-function WordList(props: { wordList: Set<CleanData> }): JSX.Element {
+function WordList(props: { wordList: Map<string, WordsToWatch> }): JSX.Element {
 	let wordListIter = Array.from(props.wordList.values()).flat(1);
 	const [words, setWords] = useState(wordListIter);
 	const [showWord, setShowWord] = useState(false);
@@ -62,7 +61,7 @@ function WordList(props: { wordList: Set<CleanData> }): JSX.Element {
 					/>
 				</form>
 				<ul className={classes.myList}>
-					{words.map((pokemon: CleanData) => (
+					{words.map((pokemon: CleanData, i) => (
 						<li className={classes.myWord}>{showWord ? pokemon.name : <img className={classes.mySvg} src={pokemon.svg} alt={pokemon.name} />}</li>
 					))}
 				</ul>

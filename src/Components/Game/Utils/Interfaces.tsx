@@ -7,6 +7,10 @@ export interface CleanData extends ApiResp {
 	svg: string;
 }
 
+export interface WordsToWatch extends CleanData {
+	isFound: boolean;
+}
+
 export interface Location {
 	y: number;
 	x: number;

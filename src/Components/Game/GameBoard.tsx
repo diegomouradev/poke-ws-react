@@ -1,6 +1,5 @@
 import React from 'react';
 import { createUseStyles } from 'react-jss';
-import Tile from './Tile';
 import LetterTile from './Tile';
 
 const useStyles = createUseStyles({

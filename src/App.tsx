@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import GameCore from './Components/Game/GameCore';
 import { ApiResp, CleanData } from './Components/Game/Utils/Interfaces';
-import WordList from './Components/Game/WordList';
 
 const useStyles = createUseStyles({
 	myApp: {
@@ -10,7 +9,7 @@ const useStyles = createUseStyles({
 		gridTemplateColumns: '100%',
 		margin: 0,
 		padding: {
-			top: 100,
+			top: 50,
 			left: 50,
 			bottom: 50,
 			right: 50,
@@ -32,7 +31,6 @@ function cleanUpData(data: ApiResp[]) {
 		return { svg: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${i + 1}.png`, ...pokemon } as CleanData;
 	});
 	const cleanData = dataImgUrl.filter((pokemon: ApiResp, i: number) => !wordsToRemove.has(pokemon.name));
-	console.log(cleanData);
 	return cleanData;
 }
 
