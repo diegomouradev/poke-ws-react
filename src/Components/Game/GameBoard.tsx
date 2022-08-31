@@ -1,5 +1,6 @@
 import React from 'react';
 import { createUseStyles } from 'react-jss';
+import Tile from './Tile';
 import LetterTile from './Tile';
 
 const useStyles = createUseStyles({
@@ -15,16 +16,16 @@ const useStyles = createUseStyles({
 	},
 });
 
-function GameBoard(props: { gameBoard: string[][] }) {
+function GameBoard(props: { finalGameBoard: any[][]; buildWordCallback: (letter: string) => void }) {
 	const classes = useStyles();
 
 	return (
 		<div className={classes.myGameBoard}>
-			{props.gameBoard.map((row, i): JSX.Element => {
+			{props.finalGameBoard.map((row, i): JSX.Element => {
 				return (
 					<div key={`row-${i}`} className={`row-${i} ${classes.myRow}`}>
 						{row.map((tile, j): JSX.Element => {
-							return <LetterTile tile={tile} index={j} />;
+							return <LetterTile tile={tile} index={j} buildWordCallback={props.buildWordCallback} />;
 						})}
 					</div>
 				);

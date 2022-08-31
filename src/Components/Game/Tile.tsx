@@ -16,18 +16,20 @@ const useStyles = createUseStyles({
 	},
 });
 
-function LetterTile(props: any): JSX.Element {
+function LetterTile(props: { tile: Tile; index: number; buildWordCallback: (letter: string) => void }): JSX.Element {
+	const [tile, setTile] = useState(props.tile);
 	const [isSelected, setIsSelected] = useState(false);
 	const classes = useStyles();
-	let tile = props.tile;
+	// let tile = props.tile;
 
-	const onClick = () => {
+	const handleClick = () => {
+		if (!isSelected) props.buildWordCallback(tile.letter ? (tile.letter as string) : (tile as unknown as string));
 		setIsSelected(!isSelected);
 	};
 
 	return (
-		<div key={tile.letter ? `${tile.letter}${props.index}` : `tile${props.index}`} className={isSelected ? `${classes.myTile} ${classes.selected}` : `${classes.myTile}`} onClick={() => onClick()}>
-			{tile.letter ? tile.letter : tile}
+		<div key={tile.letter ? `${tile.letter}${props.index}` : `tile${props.index}`} className={isSelected ? `${classes.myTile} ${classes.selected}` : `${classes.myTile}`} onClick={() => handleClick()}>
+			{tile.letter ? (tile.letter as string) : (tile as unknown as string)}
 		</div>
 	);
 }

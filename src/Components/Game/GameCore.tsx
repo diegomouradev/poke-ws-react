@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ALPHABET, GAME_BOARD_SIZE, DIRECTIONS, GET_NEXT_TILE, IS_DIRECTION_VALID, SKIP_TILE } from './Utils/Constants';
 import { CleanData, Location, Tile } from './Utils/Interfaces';
 import { createUseStyles } from 'react-jss';
@@ -133,9 +133,16 @@ function pickRandomLetter(): string {
 	return randomLetter;
 }
 
+// function checkForWord() {}
+
 function GameCore(props: { wordList: CleanData[] }): JSX.Element {
-	const [finalGameBoard, setFinalGameBoard] = useState<string[][]>();
+	const [finalGameBoard, setFinalGameBoard] = useState<Tile[][]>();
 	const [finalWordsInTheBoard, setFinalWordsInTheBoard] = useState<Set<CleanData>>();
+	const [wordFragment, setWordFragment] = useState<string>('');
+
+	const buildWord = (letter: string): void => {
+		setWordFragment(wordFragment + letter);
+	};
 	const classes = useStyles();
 
 	useEffect(() => {
@@ -155,7 +162,7 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 			} else {
 				// continue;
 				gameBoard = fillEmptySpots(gameBoard);
-				setFinalGameBoard(gameBoard);
+				setFinalGameBoard(gameBoard as unknown as Tile[][]);
 				setFinalWordsInTheBoard(wordsInTheBoard);
 				break;
 			}
@@ -168,7 +175,7 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 
 	return (
 		<div className={classes.grid}>
-			{finalGameBoard ? <GameBoard gameBoard={finalGameBoard as string[][]} /> : <div>Loading...</div>}
+			{finalGameBoard ? <GameBoard finalGameBoard={finalGameBoard} buildWordCallback={buildWord} /> : <div>Loading...</div>}
 			{finalWordsInTheBoard ? <WordList wordList={finalWordsInTheBoard} /> : <div>Loading...</div>}
 		</div>
 	);
