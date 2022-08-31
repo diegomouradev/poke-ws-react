@@ -133,26 +133,22 @@ function pickRandomLetter(): string {
 	return randomLetter;
 }
 
-// function checkForWord() {}
-
 function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 	const [finalGameBoard, setFinalGameBoard] = useState<Tile[][]>();
-	const [finalWordsInTheBoard, setFinalWordsInTheBoard] = useState<Set<CleanData>>();
+	const [allTilesInTheBoard, setAllTilesInTheBoard] = useState<Set<CleanData>>();
+	const [wordsToWatch, setWordsToWatch] = useState<Set<string>>();
 	const [wordFragment, setWordFragment] = useState<string>('');
 
-	const buildWord = (letter: string): void => {
-		setWordFragment(wordFragment + letter);
-	};
 	const classes = useStyles();
 
 	useEffect(() => {
 		let gameBoard = generateGameBoard();
 		let counter = props.wordList.length;
-		const wordsInTheBoard: Set<CleanData> = new Set();
+		const tilesInTheBoard: Set<CleanData> = new Set();
 
 		while (counter > 0) {
 			let wordList = props.wordList.slice();
-			const pokemon = getRandomWord(wordList, wordsInTheBoard);
+			const pokemon = getRandomWord(wordList, tilesInTheBoard);
 			const word = pokemon.name;
 			const possibleLocations = generateLocations(word, gameBoard);
 			let location: unknown;
@@ -163,20 +159,46 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 				// continue;
 				gameBoard = fillEmptySpots(gameBoard);
 				setFinalGameBoard(gameBoard as unknown as Tile[][]);
-				setFinalWordsInTheBoard(wordsInTheBoard);
+				setAllTilesInTheBoard(tilesInTheBoard);
+				getWordsToWatch(tilesInTheBoard);
 				break;
 			}
 			gameBoard = placeWordInTheGameBoard(word, location as Location, gameBoard);
-			wordsInTheBoard.add(pokemon);
+			tilesInTheBoard.add(pokemon);
 
 			counter--;
 		}
 	}, []);
 
+	const getWordsToWatch = (tilesInTheBoard: Set<CleanData>) => {
+		let wordsToWatch: Set<string> = new Set();
+		tilesInTheBoard.forEach((pokemon) => wordsToWatch.add(pokemon.name));
+		setWordsToWatch(wordsToWatch);
+	};
+
+	const handleWordFragment = (fragment: string | number): void => {
+		let fragmentType = typeof fragment;
+		if (fragmentType === typeof 'string') {
+			setWordFragment(wordFragment + fragment);
+		} else {
+			let newWordFragment: string[] | string = Array.from(wordFragment);
+			newWordFragment.splice(fragment as number, 1);
+			let correctedFragment = newWordFragment.join('');
+			setWordFragment(correctedFragment);
+		}
+	};
+
+	useEffect(() => {
+		if (wordsToWatch && wordsToWatch.has(wordFragment)) {
+			console.log(`You found a wild ${wordFragment}!`);
+			setWordFragment('');
+		}
+	}, [wordFragment, wordsToWatch]);
+
 	return (
 		<div className={classes.grid}>
-			{finalGameBoard ? <GameBoard finalGameBoard={finalGameBoard} buildWordCallback={buildWord} /> : <div>Loading...</div>}
-			{finalWordsInTheBoard ? <WordList wordList={finalWordsInTheBoard} /> : <div>Loading...</div>}
+			{finalGameBoard ? <GameBoard finalGameBoard={finalGameBoard} getWordFragmentCallback={handleWordFragment} /> : <div>Loading...</div>}
+			{allTilesInTheBoard ? <WordList wordList={allTilesInTheBoard} /> : <div>Loading...</div>}
 		</div>
 	);
 }

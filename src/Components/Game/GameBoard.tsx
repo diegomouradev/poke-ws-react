@@ -16,7 +16,7 @@ const useStyles = createUseStyles({
 	},
 });
 
-function GameBoard(props: { finalGameBoard: any[][]; buildWordCallback: (letter: string) => void }) {
+function GameBoard(props: { finalGameBoard: any[][]; getWordFragmentCallback: (fragment: string | number) => void }) {
 	const classes = useStyles();
 
 	return (
@@ -25,7 +25,7 @@ function GameBoard(props: { finalGameBoard: any[][]; buildWordCallback: (letter:
 				return (
 					<div key={`row-${i}`} className={`row-${i} ${classes.myRow}`}>
 						{row.map((tile, j): JSX.Element => {
-							return <LetterTile tile={tile} index={j} buildWordCallback={props.buildWordCallback} />;
+							return <LetterTile tile={tile} index={j} getWordFragmentCallback={props.getWordFragmentCallback} />;
 						})}
 					</div>
 				);

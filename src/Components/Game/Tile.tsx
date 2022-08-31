@@ -16,14 +16,18 @@ const useStyles = createUseStyles({
 	},
 });
 
-function LetterTile(props: { tile: Tile; index: number; buildWordCallback: (letter: string) => void }): JSX.Element {
+function LetterTile(props: { tile: Tile; index: number; getWordFragmentCallback: (fragment: string | number) => void }): JSX.Element {
 	const [tile, setTile] = useState(props.tile);
 	const [isSelected, setIsSelected] = useState(false);
 	const classes = useStyles();
 	// let tile = props.tile;
 
 	const handleClick = () => {
-		if (!isSelected) props.buildWordCallback(tile.letter ? (tile.letter as string) : (tile as unknown as string));
+		if (!isSelected) {
+			props.getWordFragmentCallback(tile.letter ? (tile.letter as string) : (tile as unknown as string));
+		} else {
+			props.getWordFragmentCallback(tile.letterIndex as unknown as number);
+		}
 		setIsSelected(!isSelected);
 	};
 
