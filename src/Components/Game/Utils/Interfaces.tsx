@@ -18,7 +18,7 @@ export interface Location {
 	overlap: number;
 }
 
-interface TileCoor {
+export interface TileCoor {
 	x: number;
 	y: number;
 }

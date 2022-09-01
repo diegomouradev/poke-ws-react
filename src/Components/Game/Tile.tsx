@@ -11,9 +11,7 @@ const useStyles = createUseStyles({
 		alignItems: 'center',
 		textTransform: 'uppercase',
 	},
-	selected: {
-		backgroundColor: '#9c9c9c36',
-	},
+
 });
 
 function LetterTile(props: { tile: Tile; index: number; getWordFragmentCallback: (fragment: Tile) => void }): JSX.Element {
@@ -32,7 +30,7 @@ function LetterTile(props: { tile: Tile; index: number; getWordFragmentCallback:
 	}, [tile]);
 
 	return (
-		<div key={tile.letter ? `${tile.letter}${props.index}` : `tile${props.index}`} className={tile.isSelected ? `${classes.myTile} ${classes.selected}` : `${classes.myTile}`} onClick={() => handleClick()}>
+		<div key={tile.letter ? `${tile.letter}${props.index}` : `tile${props.index}`} className={classes.myTile} onClick={() => handleClick()}>
 			{tile.letter ? (tile.letter as string) : (tile as unknown as string)}
 		</div>
 	);

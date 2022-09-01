@@ -1,6 +1,6 @@
 import React, { createRef, useEffect, useRef, useState } from 'react';
 import { ALPHABET, GAME_BOARD_SIZE, DIRECTIONS, GET_NEXT_TILE, IS_DIRECTION_VALID, SKIP_TILE } from './Utils/Constants';
-import { CleanData, Location, Tile, WordsToWatch } from './Utils/Interfaces';
+import { CleanData, Location, Tile, TileCoor, WordsToWatch } from './Utils/Interfaces';
 import { createUseStyles } from 'react-jss';
 import GameBoard from './GameBoard';
 import WordList from './WordList';
@@ -143,6 +143,7 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 	const [wordFragment, setWordFragment] = useState<string>('');
 	const gameBoardRef: React.RefObject<HTMLDivElement> = createRef<HTMLDivElement>();
 	const [canvasSize, setCanvasSize] = useState();
+	const [coordinatesForCanvas, setCoordinatesForCanvas] = useState<TileCoor>();
 	const classes = useStyles();
 
 	useEffect(() => {
@@ -191,6 +192,7 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 			newWordFragment = wordFragmentArray.join('');
 			setWordFragment(newWordFragment);
 		}
+		setCoordinatesForCanvas(fragment.coordinates);
 	};
 
 	useEffect(() => {
@@ -208,7 +210,7 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 		<div className={classes.grid}>
 			<div className={classes.canvasBoardWrapper}>
 				{gameBoard ? <GameBoard finalGameBoard={gameBoard} getWordFragmentCallback={handleWordFragment} getCanvasSizeFromBoard={getCanvasSizeFromBoard} /> : <div>Loading...</div>}
-				{gameBoardRef ? <GameCanvas size={canvasSize as unknown as number} /> : null}
+				{gameBoardRef ? <GameCanvas size={canvasSize as unknown as number} coordinates={(coordinatesForCanvas as TileCoor) ? coordinatesForCanvas : undefined} /> : null}
 			</div>
 			{wordListTiles ? <WordList wordList={wordListTiles} /> : <div>Loading...</div>}
 		</div>
