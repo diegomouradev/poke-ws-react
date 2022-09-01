@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { createUseStyles } from 'react-jss';
+import { Tile } from './Utils/Interfaces';
 import LetterTile from './Tile';
 
 const useStyles = createUseStyles({
@@ -15,7 +16,7 @@ const useStyles = createUseStyles({
 	},
 });
 
-function GameBoard(props: { finalGameBoard: any[][]; getWordFragmentCallback: (fragment: string | number) => void; getCanvasSizeFromBoard: Function }) {
+function GameBoard(props: { finalGameBoard: any[][]; getWordFragmentCallback: (fragment: Tile) => void; getCanvasSizeFromBoard: Function }) {
 	const classes = useStyles();
 	const gameBoardRef = useRef<any>();
 

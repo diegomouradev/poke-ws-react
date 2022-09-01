@@ -110,7 +110,7 @@ function buildTile(word: string, next: any, i: number): any {
 	let tile: any = {
 		letter: word[i],
 		coordinates: { x: next.x, y: next.y },
-		wordLength: word.length,
+		isSelected: false,
 		letterIndex: i,
 	};
 	return tile;
@@ -179,23 +179,23 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 		setWordsToWatch(wordsToWatch);
 	};
 
-	const handleWordFragment = (fragment: string | number): void => {
-		let fragmentType = typeof fragment;
-		if (fragmentType === typeof 'string') {
-			setWordFragment(wordFragment + fragment);
+	const handleWordFragment = (fragment: Tile): void => {
+		let wordFragmentArray: string[] = Array.from(wordFragment);
+		let newWordFragment;
+		if (fragment.isSelected) {
+			wordFragmentArray[fragment.letterIndex] = fragment.letter;
+			newWordFragment = wordFragmentArray.join('');
+			setWordFragment(wordFragment);
 		} else {
-			let newWordFragment: string[] | string = Array.from(wordFragment);
-			newWordFragment.splice(fragment as number, 1);
-			let correctedFragment = newWordFragment.join('');
-			setWordFragment(correctedFragment);
+			wordFragmentArray.splice(fragment.letterIndex, 1);
+			newWordFragment = wordFragmentArray.join('');
+			setWordFragment(newWordFragment);
 		}
 	};
 
 	useEffect(() => {
 		if (wordsToWatch && wordsToWatch.has(wordFragment)) {
 			console.log(`You found a wild ${wordFragment}!`);
-			// let wordFound = wordListTiles.get(wordFragment);
-			// wordFound['isFound'] = true;
 			setWordFragment('');
 		}
 	}, [wordFragment, wordsToWatch]);

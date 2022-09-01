@@ -1,12 +1,11 @@
 import React from 'react';
 import { createUseStyles } from 'react-jss';
 
-
 const useStyles = createUseStyles({
 	myCanvas: {
 		position: 'absolute',
 		// border: '1px solid black',
-		backgroundColor: 'rgba(0,0,0,0.3)',
+		// backgroundColor: 'rgba(0,0,0,0.3)',
 		justifySelf: 'center',
 		alignSelf: 'center',
 		top: 0,

@@ -26,7 +26,7 @@ interface TileCoor {
 export interface Tile {
 	letter: string;
 	coordinates: TileCoor;
-	wordLength: number;
+	isSelected: boolean;
 	letterIndex: number;
 }
 
