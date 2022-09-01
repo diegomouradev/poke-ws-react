@@ -1,15 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { createRef, useEffect, useRef, useState } from 'react';
 import { ALPHABET, GAME_BOARD_SIZE, DIRECTIONS, GET_NEXT_TILE, IS_DIRECTION_VALID, SKIP_TILE } from './Utils/Constants';
 import { CleanData, Location, Tile, WordsToWatch } from './Utils/Interfaces';
 import { createUseStyles } from 'react-jss';
 import GameBoard from './GameBoard';
 import WordList from './WordList';
+import GameCanvas from './GameCanvas';
 
 const useStyles = createUseStyles({
 	grid: {
 		display: 'grid',
 		gridTemplateColumns: 'repeat(2,50%)',
 		columnGap: '30px',
+	},
+	canvasBoardWrapper: {
+		position: 'relative',
 	},
 });
 
@@ -137,7 +141,8 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 	const [wordListTiles, setWordListTiles] = useState<Map<string, WordsToWatch>>();
 	const [wordsToWatch, setWordsToWatch] = useState<Set<string>>();
 	const [wordFragment, setWordFragment] = useState<string>('');
-
+	const gameBoardRef: React.RefObject<HTMLDivElement> = createRef<HTMLDivElement>();
+	const [canvasSize, setCanvasSize] = useState();
 	const classes = useStyles();
 
 	useEffect(() => {
@@ -186,8 +191,6 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 		}
 	};
 
-	// const updateTileWordList()
-
 	useEffect(() => {
 		if (wordsToWatch && wordsToWatch.has(wordFragment)) {
 			console.log(`You found a wild ${wordFragment}!`);
@@ -197,9 +200,16 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 		}
 	}, [wordFragment, wordsToWatch]);
 
+	const getCanvasSizeFromBoard = (gameBoardRef: any) => {
+		setCanvasSize(gameBoardRef);
+	};
+
 	return (
 		<div className={classes.grid}>
-			{gameBoard ? <GameBoard finalGameBoard={gameBoard} getWordFragmentCallback={handleWordFragment} /> : <div>Loading...</div>}
+			<div className={classes.canvasBoardWrapper}>
+				{gameBoard ? <GameBoard finalGameBoard={gameBoard} getWordFragmentCallback={handleWordFragment} getCanvasSizeFromBoard={getCanvasSizeFromBoard} /> : <div>Loading...</div>}
+				{gameBoardRef ? <GameCanvas size={canvasSize as unknown as number} /> : null}
+			</div>
 			{wordListTiles ? <WordList wordList={wordListTiles} /> : <div>Loading...</div>}
 		</div>
 	);

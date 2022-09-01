@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createUseStyles } from 'react-jss';
 import LetterTile from './Tile';
 
@@ -15,11 +15,19 @@ const useStyles = createUseStyles({
 	},
 });
 
-function GameBoard(props: { finalGameBoard: any[][]; getWordFragmentCallback: (fragment: string | number) => void }) {
+function GameBoard(props: { finalGameBoard: any[][]; getWordFragmentCallback: (fragment: string | number) => void; getCanvasSizeFromBoard: Function }) {
 	const classes = useStyles();
+	const gameBoardRef = useRef<any>();
+
+	useEffect(() => {
+		if (gameBoardRef) {
+			const size = gameBoardRef.current.clientWidth;
+			props.getCanvasSizeFromBoard(size);
+		}
+	}, [props.getCanvasSizeFromBoard, gameBoardRef]);
 
 	return (
-		<div className={classes.myGameBoard}>
+		<div ref={gameBoardRef} className={classes.myGameBoard}>
 			{props.finalGameBoard.map((row, i): JSX.Element => {
 				return (
 					<div key={`row-${i}`} className={`row-${i} ${classes.myRow}`}>
