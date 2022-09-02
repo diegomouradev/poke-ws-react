@@ -112,6 +112,7 @@ function buildTile(word: string, next: any, i: number): any {
 		coordinates: { x: next.x, y: next.y },
 		isSelected: false,
 		letterIndex: i,
+		word: word,
 	};
 	return tile;
 }
@@ -140,12 +141,13 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 	const [gameBoard, setGameBoard] = useState<Tile[][]>();
 	const [wordListTiles, setWordListTiles] = useState<Map<string, WordsToWatch>>();
 	const [wordsToWatch, setWordsToWatch] = useState<Set<string>>();
-	const [wordFragment, setWordFragment] = useState<string>('');
+	const [wordFragment, setWordFragment] = useState<string[] | null>(null);
 	const gameBoardRef: React.RefObject<HTMLDivElement> = createRef<HTMLDivElement>();
 	const [canvasSize, setCanvasSize] = useState();
 	const [coordinatesForCanvas, setCoordinatesForCanvas] = useState<TileCoor>();
 	const classes = useStyles();
 
+	// Initialize Game and Generate GameBoard
 	useEffect(() => {
 		let partialGameBoard = generateGameBoard();
 		let counter = props.wordList.length;
@@ -181,26 +183,32 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 	};
 
 	const handleWordFragment = (fragment: Tile): void => {
-		let wordFragmentArray: string[] = Array.from(wordFragment);
-		let newWordFragment;
-		if (fragment.isSelected) {
-			wordFragmentArray[fragment.letterIndex] = fragment.letter;
-			newWordFragment = wordFragmentArray.join('');
-			setWordFragment(wordFragment);
+		if (!wordFragment) {
+			let wordFragmentArr: string[] = Array(fragment.word.length).fill('');
+			wordFragmentArr.splice(fragment.letterIndex, 1, fragment.letter);
+			setWordFragment(wordFragmentArr);
 		} else {
-			wordFragmentArray.splice(fragment.letterIndex, 1);
-			newWordFragment = wordFragmentArray.join('');
-			setWordFragment(newWordFragment);
+			let wordFragSoFar = wordFragment as string[];
+			fragment.isSelected ? wordFragSoFar.splice(fragment.letterIndex, 1, fragment.letter) : wordFragSoFar.splice(fragment.letterIndex, 1, '');
+			setWordFragment(wordFragSoFar);
 		}
-		setCoordinatesForCanvas(fragment.coordinates);
+		setCoordinatesForCanvas(fragment.coordinates as TileCoor);
+	};
+
+	const updateWordListTiles = (word: string): void => {
+		let markWordAsFound: WordsToWatch = wordListTiles?.get(word) as WordsToWatch;
+		markWordAsFound.isFound = true;
+		wordListTiles?.set(word, markWordAsFound);
 	};
 
 	useEffect(() => {
-		if (wordsToWatch && wordsToWatch.has(wordFragment)) {
-			console.log(`You found a wild ${wordFragment}!`);
-			setWordFragment('');
+		let wordFragSoFar: string = wordFragment?.join('') as string;
+
+		if (wordsToWatch && wordsToWatch.has(wordFragSoFar)) {
+			updateWordListTiles(wordFragSoFar);
+			setWordFragment(null);
 		}
-	}, [wordFragment, wordsToWatch]);
+	}, [wordFragment]);
 
 	const getCanvasSizeFromBoard = (gameBoardRef: any) => {
 		setCanvasSize(gameBoardRef);
@@ -210,7 +218,7 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 		<div className={classes.grid}>
 			<div className={classes.canvasBoardWrapper}>
 				{gameBoard ? <GameBoard finalGameBoard={gameBoard} getWordFragmentCallback={handleWordFragment} getCanvasSizeFromBoard={getCanvasSizeFromBoard} /> : <div>Loading...</div>}
-				{gameBoardRef ? <GameCanvas size={canvasSize as unknown as number} coordinates={(coordinatesForCanvas as TileCoor) ? coordinatesForCanvas : undefined} /> : null}
+				{gameBoardRef ? <GameCanvas size={canvasSize as unknown as number} coordinates={coordinatesForCanvas as TileCoor} /> : <div>Loading...</div>}
 			</div>
 			{wordListTiles ? <WordList wordList={wordListTiles} /> : <div>Loading...</div>}
 		</div>

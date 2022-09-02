@@ -28,6 +28,7 @@ export interface Tile {
 	coordinates: TileCoor;
 	isSelected: boolean;
 	letterIndex: number;
+	word: string;
 }
 
 export interface Direction {

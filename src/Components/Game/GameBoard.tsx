@@ -16,7 +16,7 @@ const useStyles = createUseStyles({
 	},
 });
 
-function GameBoard(props: { finalGameBoard: any[][]; getWordFragmentCallback: (fragment: Tile) => void; getCanvasSizeFromBoard: Function }) {
+function GameBoard(props: { finalGameBoard: Tile[][]; getWordFragmentCallback: (fragment: Tile) => void; getCanvasSizeFromBoard: Function }) {
 	const classes = useStyles();
 	const gameBoardRef = useRef<any>();
 

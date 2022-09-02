@@ -15,28 +15,35 @@ const useStyles = createUseStyles({
 	},
 });
 
-function GameCanvas(props: { size: number; coordinates: TileCoor | undefined }) {
+function GameCanvas(props: { size: number; coordinates: TileCoor }) {
 	const classes = useStyles();
 	const myCanvas = useRef<HTMLCanvasElement>(null);
-	const [ctx, setCtx] = useState<CanvasRenderingContext2D>();
-
+	const ctx = useRef<CanvasRenderingContext2D>();
+	const [coordinatesSoFar, setCoordinatesSoFar] = useState<Set<TileCoor>>(new Set());
 	useEffect(() => {
 		if (myCanvas !== null) {
-			let ctx: CanvasRenderingContext2D = myCanvas.current?.getContext('2d') as CanvasRenderingContext2D;
-			setCtx(ctx);
+			ctx.current = myCanvas.current?.getContext('2d') as CanvasRenderingContext2D;
 		}
-	}, []);
+	}, [myCanvas]);
 
 	useEffect(() => {
-		let gameBoardSizeInPixel = props.size;
-		let numberOfRowsAndColumns = GAME_BOARD_SIZE;
-		let sizeRowsAndColumns = gameBoardSizeInPixel / numberOfRowsAndColumns;
+		const gameBoardSizeInPixel = props.size;
+		const numberOfRowsAndColumns = GAME_BOARD_SIZE;
+		const sizeRowsAndColumns = gameBoardSizeInPixel / numberOfRowsAndColumns;
 
-		if (props.coordinates && ctx) {
-			ctx.beginPath();
-			ctx.arc(props.coordinates.x * sizeRowsAndColumns + 15.8, props.coordinates.y * sizeRowsAndColumns + 15.5, 11, 0, 360);
-			ctx.fillStyle = 'green';
-			ctx.fill();
+		if (props.coordinates && ctx.current && !coordinatesSoFar.has(props.coordinates)) {
+			ctx.current.beginPath();
+			ctx.current.arc(props.coordinates.x * sizeRowsAndColumns + 15.8, props.coordinates.y * sizeRowsAndColumns + 15.5, 11, 0, 360);
+			ctx.current.fillStyle = 'rgba(0,0,0,.5)';
+			ctx.current.closePath();
+			ctx.current.fill();
+			const coorsToSave = coordinatesSoFar;
+			coorsToSave.add(props.coordinates);
+			return setCoordinatesSoFar(coorsToSave);
+		}
+
+		if (props.coordinates && ctx.current && coordinatesSoFar.has(props.coordinates)) {
+			ctx.current.clearRect(props.coordinates.x * sizeRowsAndColumns, props.coordinates.y * sizeRowsAndColumns, 30.8, 30.5);
 		}
 	}, [props.coordinates]);
 

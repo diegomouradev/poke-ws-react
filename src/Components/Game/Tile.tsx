@@ -11,27 +11,22 @@ const useStyles = createUseStyles({
 		alignItems: 'center',
 		textTransform: 'uppercase',
 	},
-
 });
 
 function LetterTile(props: { tile: Tile; index: number; getWordFragmentCallback: (fragment: Tile) => void }): JSX.Element {
 	const [tile, setTile] = useState<Tile>(props.tile);
 	const classes = useStyles();
 
-
 	const handleClick = () => {
-		let newTile = { ...tile };
-		newTile.isSelected = !newTile.isSelected;
-		setTile(newTile);
+		let tileClicked = tile as Tile;
+		tileClicked.isSelected = !tileClicked.isSelected;
+		setTile(tileClicked);
+		props.getWordFragmentCallback(tileClicked as Tile);
 	};
 
-	useEffect(() => {
-		props.getWordFragmentCallback(tile);
-	}, [tile]);
-
 	return (
-		<div key={tile.letter ? `${tile.letter}${props.index}` : `tile${props.index}`} className={classes.myTile} onClick={() => handleClick()}>
-			{tile.letter ? (tile.letter as string) : (tile as unknown as string)}
+		<div key={props.tile.letter ? `${props.tile.letter}${props.index}` : `tile${props.index}`} className={classes.myTile} onClick={() => handleClick()}>
+			{props.tile.letter ? (props.tile.letter as string) : (props.tile as unknown as string)}
 		</div>
 	);
 }
