@@ -1,10 +1,10 @@
-import React, { createRef, useEffect, useRef, useState } from 'react';
-import { ALPHABET, GAME_BOARD_SIZE, DIRECTIONS, GET_NEXT_TILE, IS_DIRECTION_VALID, SKIP_TILE } from './Utils/Constants';
-import { CleanData, Location, Tile, TileCoor, WordsToWatch } from './Utils/Interfaces';
+import React, { createRef, useEffect, useState } from 'react';
+import { ALPHABET, GAME_BOARD_SIZE, DIRECTIONS, GET_NEXT_TILE, IS_DIRECTION_VALID, SKIP_TILE } from './Game/Utils/Constants';
+import { CleanData, Location, Tile, TileCoor, WordsToWatch } from './Game/Utils/Interfaces';
 import { createUseStyles } from 'react-jss';
-import GameBoard from './GameBoard';
-import WordList from './WordList';
-import GameCanvas from './GameCanvas';
+import GameBoard from './Game/GameBoard';
+import WordList from './Game/WordList';
+import GameCanvas from './Game/GameCanvas';
 
 const useStyles = createUseStyles({
 	grid: {
@@ -106,10 +106,10 @@ function placeWordInTheGameBoard(word: string, randomLocation: Location, gameBoa
 	return gameBoard;
 }
 
-function buildTile(word: string, next: any, i: number): any {
-	let tile: any = {
+function buildTile(word: string, next: TileCoor | null = null, i: number = 0): any {
+	let tile: Tile = {
 		letter: word[i],
-		coordinates: { x: next.x, y: next.y },
+		coordinates: next ? { x: next.x, y: next.y } : null,
 		isSelected: false,
 		letterIndex: i,
 		word: word,
@@ -123,7 +123,9 @@ function fillEmptySpots(gameBoard: string[][]) {
 		while (i < GAME_BOARD_SIZE) {
 			let tile: Tile = row[i] as unknown as Tile;
 			if (!tile.letter) {
-				row[i] = pickRandomLetter();
+				let randomLetter = pickRandomLetter();
+				let fakeTile = buildTile(randomLetter);
+				row[i] = fakeTile;
 			}
 			i++;
 		}
@@ -192,7 +194,9 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 			fragment.isSelected ? wordFragSoFar.splice(fragment.letterIndex, 1, fragment.letter) : wordFragSoFar.splice(fragment.letterIndex, 1, '');
 			setWordFragment(wordFragSoFar);
 		}
+
 		setCoordinatesForCanvas(fragment.coordinates as TileCoor);
+		if (fragment.isSelected) checkFragmentForWord();
 	};
 
 	const updateWordListTiles = (word: string): void => {
@@ -201,14 +205,13 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 		wordListTiles?.set(word, markWordAsFound);
 	};
 
-	useEffect(() => {
-		let wordFragSoFar: string = wordFragment?.join('') as string;
-
-		if (wordsToWatch && wordsToWatch.has(wordFragSoFar)) {
-			updateWordListTiles(wordFragSoFar);
+	const checkFragmentForWord = () => {
+		let wordFragmentSoFar = wordFragment?.join('') as string;
+		if (wordsToWatch && wordsToWatch.has(wordFragmentSoFar)) {
+			updateWordListTiles(wordFragmentSoFar);
 			setWordFragment(null);
 		}
-	}, [wordFragment]);
+	};
 
 	const getCanvasSizeFromBoard = (gameBoardRef: any) => {
 		setCanvasSize(gameBoardRef);

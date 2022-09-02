@@ -18,7 +18,13 @@ const useStyles = createUseStyles({
 	},
 	mySvg: {
 		width: '80px',
+	},
+	notFound: {
 		filter: 'grayscale(1)',
+	},
+	isFound: {
+		filter: 'grayscale(0)',
+		textDecoration: 'line-through',
 	},
 	toggleShowWordBtn: {
 		padding: '5px',
@@ -61,8 +67,14 @@ function WordList(props: { wordList: Map<string, WordsToWatch> }): JSX.Element {
 					/>
 				</form>
 				<ul className={classes.myList}>
-					{words.map((pokemon: CleanData, i) => (
-						<li className={classes.myWord}>{showWord ? pokemon.name : <img className={classes.mySvg} src={pokemon.svg} alt={pokemon.name} />}</li>
+					{words.map((pokemon: WordsToWatch, i) => (
+						<li className={classes.myWord}>
+							{showWord ? (
+								<span className={`${pokemon.isFound ? classes.isFound : classes.notFound}`}>{pokemon.name}</span>
+							) : (
+								<img className={`${classes.mySvg} ${pokemon.isFound ? classes.isFound : classes.notFound}`} src={pokemon.svg} alt={pokemon.name} />
+							)}
+						</li>
 					))}
 				</ul>
 			</div>

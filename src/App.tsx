@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createUseStyles } from 'react-jss';
-import GameCore from './Components/Game/GameCore';
+import GameCore from './Components/GameCore';
 import { ApiResp, CleanData } from './Components/Game/Utils/Interfaces';
 
 const useStyles = createUseStyles({
