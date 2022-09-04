@@ -114,6 +114,7 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 				updatedWordList.set(word, wordFound);
 				setWordListTiles(updatedWordList);
 			}
+			setWordFragment(undefined);
 		}
 	}, [wordFragment]);
 
