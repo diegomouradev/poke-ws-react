@@ -25,7 +25,7 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 	// const [wordsToWatch, setWordsToWatch] = useState<Set<string>>();
 	const [tile, setTile] = useState<Tile>();
 	const [coordinatesForCanvas, setCoordinatesForCanvas] = useState<TileCoor>();
-	const [wordFragment, setWordFragment] = useState<string[]>([]);
+	const [wordFragment, setWordFragment] = useState<string[]>();
 	const classes = useStyles();
 
 	// Initialize Game and Generate GameBoard
@@ -70,26 +70,26 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 		setTile(tileClicked);
 	}, []);
 
-	const handleWordFragment = (tile: Tile): string[] => {
-		let wordFragmentArr: string[] = [...(wordFragment as string[])];
+	const handleWordFragment = (tile: Tile, wordFragmentArr: string[]): string[] => {
 		if (tile?.isSelected) {
 			wordFragmentArr.splice(tile.letterIndex, 1, tile.letter);
+		} else {
+			wordFragmentArr.splice(tile?.letterIndex as number, 1, '');
 		}
-		wordFragmentArr.splice(tile?.letterIndex as number, 1, tile?.letter as string);
 		return wordFragmentArr;
 	};
 
 	useEffect(() => {
-		let wordFramentLength = wordFragment?.length;
-		let wordFragmentArr: string[] = [];
-		if (tile && !wordFramentLength) {
-			wordFragmentArr.fill('', 0, tile.word.length);
-		} else {
-			wordFragmentArr = [...(wordFragment as string[])];
+		if (tile) {
+			let wordFragmentArr: string[];
+			if (!wordFragment) {
+				wordFragmentArr = Array.from(tile?.word as string).fill('');
+			} else {
+				wordFragmentArr = [...(wordFragment as string[])];
+			}
+			wordFragmentArr = handleWordFragment(tile as Tile, wordFragmentArr);
+			setWordFragment(wordFragmentArr);
 		}
-		wordFragmentArr = handleWordFragment(tile as Tile);
-
-		setWordFragment(wordFragmentArr);
 	}, [tile]);
 
 	useEffect(() => {
@@ -103,7 +103,7 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 	}, [coordinatesForCanvas]);
 
 	useEffect(() => {
-		if (wordFragment.indexOf('') === -1) {
+		if (wordFragment && wordFragment.indexOf('') === -1) {
 			let word = wordFragment?.join('') as string;
 
 			if (wordListTiles?.has(word)) {
