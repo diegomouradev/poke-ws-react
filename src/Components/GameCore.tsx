@@ -1,5 +1,5 @@
-import React, { createRef, useEffect, useState } from 'react';
-import { ALPHABET, GAME_BOARD_SIZE, DIRECTIONS, GET_NEXT_TILE, IS_DIRECTION_VALID, SKIP_TILE } from './Game/Utils/Constants';
+import React, { createRef, useCallback, useEffect, useState } from 'react';
+import { fillEmptySpots, generateGameBoard, generateLocations, getRandomWord, placeWordInTheGameBoard } from './Game/Utils/BordGenerationLogic';
 import { CleanData, Location, Tile, TileCoor, WordsToWatch } from './Game/Utils/Interfaces';
 import { createUseStyles } from 'react-jss';
 import GameBoard from './Game/GameBoard';
@@ -17,136 +17,15 @@ const useStyles = createUseStyles({
 	},
 });
 
-function generateGameBoard(): string[][] {
-	let board: string[][] = [];
-	for (let i = 0; i < GAME_BOARD_SIZE; i++) {
-		board.push([]);
-		for (let j = 0; j < GAME_BOARD_SIZE; j++) {
-			board[i].push('_');
-		}
-	}
-	return board;
-}
-
-function getRandomWord(wordList: CleanData[], wordsInTheBoard: Map<string, WordsToWatch>): CleanData {
-	const randomIndex = Math.floor(Math.random() * wordList.length);
-	let randomWord = wordList.splice(randomIndex, 1);
-	let word = randomWord[0];
-
-	if (!wordsInTheBoard.has(word.name)) return word;
-	return getRandomWord(wordList, wordsInTheBoard);
-}
-
-function generateLocations(word: string, gameBoard: string[][]): Location[] {
-	let availableLocations: Location[] = [];
-	let maxOverlap = 0;
-	let length = word.length;
-
-	for (let direction of DIRECTIONS) {
-		let x, y;
-		x = 0; // Column
-		y = 0; // Row
-		while (y < GAME_BOARD_SIZE) {
-			if (IS_DIRECTION_VALID[direction](x, y, length, GAME_BOARD_SIZE)) {
-				let overlap = checkForOverlap(word, x, y, direction, gameBoard as string[][]);
-
-				if (overlap >= maxOverlap) {
-					maxOverlap = overlap;
-					availableLocations.push({ x, y, direction, overlap });
-				}
-				x++;
-				if (x >= GAME_BOARD_SIZE) {
-					x = 0;
-					y++;
-				}
-			} else {
-				const next: any = SKIP_TILE[direction](x, y, length);
-
-				x = next.x;
-				y = next.y;
-			}
-		}
-	}
-	if (availableLocations.length > 0) return pruneLocations(availableLocations, maxOverlap);
-	return [];
-}
-
-function checkForOverlap(word: string, x: number, y: number, direction: string, gameBoard: string[][]): number {
-	let overlap = 0;
-	for (let [index, letter] of Object.entries(word)) {
-		const nextTile = GET_NEXT_TILE[direction](x, y, Number(index));
-		const tile = gameBoard[nextTile.y][nextTile.x];
-
-		// Increment the overlap counter
-		if (tile === letter) {
-			overlap++;
-
-			// Return if no overlap is possible.
-		} else if (tile !== '_') {
-			return -1;
-		}
-	}
-	return overlap;
-}
-
-function pruneLocations(availableLocations: Location[], maxOverlap: number) {
-	const prunedLocations = [];
-	for (let location of availableLocations) {
-		if (location.overlap >= maxOverlap) prunedLocations.push(location);
-	}
-	return prunedLocations;
-}
-
-function placeWordInTheGameBoard(word: string, randomLocation: Location, gameBoard: string[][]) {
-	for (let i = 0; i < word.length; i++) {
-		let next = GET_NEXT_TILE[randomLocation.direction](randomLocation.x, randomLocation.y, i);
-		let tile: any = buildTile(word, next, i);
-		gameBoard[next.y][next.x] = tile;
-	}
-	return gameBoard;
-}
-
-function buildTile(word: string, next: TileCoor | null = null, i: number = 0): any {
-	let tile: Tile = {
-		letter: word[i],
-		coordinates: next ? { x: next.x, y: next.y } : null,
-		isSelected: false,
-		letterIndex: i,
-		word: word,
-	};
-	return tile;
-}
-
-function fillEmptySpots(gameBoard: string[][]) {
-	for (let row of gameBoard) {
-		let i: number = 0;
-		while (i < GAME_BOARD_SIZE) {
-			let tile: Tile = row[i] as unknown as Tile;
-			if (!tile.letter) {
-				let randomLetter = pickRandomLetter();
-				let fakeTile = buildTile(randomLetter);
-				row[i] = fakeTile;
-			}
-			i++;
-		}
-	}
-	return gameBoard;
-}
-
-function pickRandomLetter(): string {
-	const letterIndex = Math.floor(Math.random() * ALPHABET.length);
-	const randomLetter = ALPHABET[letterIndex];
-	return randomLetter;
-}
-
 function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 	const [gameBoard, setGameBoard] = useState<Tile[][]>();
-	const [wordListTiles, setWordListTiles] = useState<Map<string, WordsToWatch>>();
-	const [wordsToWatch, setWordsToWatch] = useState<Set<string>>();
-	const [wordFragment, setWordFragment] = useState<string[] | null>(null);
 	const gameBoardRef: React.RefObject<HTMLDivElement> = createRef<HTMLDivElement>();
 	const [canvasSize, setCanvasSize] = useState();
+	const [wordListTiles, setWordListTiles] = useState<Map<string, WordsToWatch>>();
+	// const [wordsToWatch, setWordsToWatch] = useState<Set<string>>();
+	const [tile, setTile] = useState<Tile>();
 	const [coordinatesForCanvas, setCoordinatesForCanvas] = useState<TileCoor>();
+	const [wordFragment, setWordFragment] = useState<string[]>([]);
 	const classes = useStyles();
 
 	// Initialize Game and Generate GameBoard
@@ -160,11 +39,11 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 			const pokemon = getRandomWord(wordList, tilesInTheBoard);
 			const word = pokemon.name;
 			const possibleLocations = generateLocations(word, partialGameBoard);
-			let location: unknown;
+			let location: Location;
 
 			if (possibleLocations.length > 0) {
 				location = possibleLocations[Math.floor(Math.random() * possibleLocations.length)];
-				partialGameBoard = placeWordInTheGameBoard(word, location as Location, partialGameBoard);
+				partialGameBoard = placeWordInTheGameBoard(word, location, partialGameBoard);
 				tilesInTheBoard.set(pokemon.name, { ...pokemon, isFound: false } as WordsToWatch);
 				counter--;
 			} else {
@@ -175,53 +54,74 @@ function GameCore(props: { wordList: CleanData[] }): JSX.Element {
 		partialGameBoard = fillEmptySpots(partialGameBoard);
 		setGameBoard(partialGameBoard as unknown as Tile[][]);
 		setWordListTiles(tilesInTheBoard);
-		getWordsToWatch(tilesInTheBoard);
+		// getWordsToWatch(tilesInTheBoard);s
 	}, []);
 
-	const getWordsToWatch = (tilesInTheBoard: Map<string, WordsToWatch>) => {
-		let wordsToWatch: Set<string> = new Set();
-		tilesInTheBoard.forEach((pokemon) => wordsToWatch.add(pokemon.name));
-		setWordsToWatch(wordsToWatch);
+	// Once gameBoard is generated it will trigger the callback to pass that reference
+	// onto the GameCore.
+	const getGameBoardRef = useCallback((gameBoardRef: any) => {
+		let size = gameBoardRef.current.clientWidth;
+		// Setting the canvasSize will allow for the rendering of the Canvas.
+		setCanvasSize(size);
+	}, []);
+
+	const onTileClicked = useCallback((tileClicked: Tile): void => {
+		tileClicked.isSelected = !tileClicked.isSelected;
+		setTile(tileClicked);
+	}, []);
+
+	const handleWordFragment = (tile: Tile): string[] => {
+		let wordFragmentArr: string[] = [...(wordFragment as string[])];
+		if (tile?.isSelected) {
+			wordFragmentArr.splice(tile.letterIndex, 1, tile.letter);
+		}
+		wordFragmentArr.splice(tile?.letterIndex as number, 1, tile?.letter as string);
+		return wordFragmentArr;
 	};
 
-	const handleWordFragment = (fragment: Tile): void => {
-		if (!wordFragment) {
-			let wordFragmentArr: string[] = Array(fragment.word.length).fill('');
-			wordFragmentArr.splice(fragment.letterIndex, 1, fragment.letter);
-			setWordFragment(wordFragmentArr);
+	useEffect(() => {
+		let wordFramentLength = wordFragment?.length;
+		let wordFragmentArr: string[] = [];
+		if (tile && !wordFramentLength) {
+			wordFragmentArr.fill('', 0, tile.word.length);
 		} else {
-			let wordFragSoFar = wordFragment as string[];
-			fragment.isSelected ? wordFragSoFar.splice(fragment.letterIndex, 1, fragment.letter) : wordFragSoFar.splice(fragment.letterIndex, 1, '');
-			setWordFragment(wordFragSoFar);
+			wordFragmentArr = [...(wordFragment as string[])];
 		}
+		wordFragmentArr = handleWordFragment(tile as Tile);
 
-		setCoordinatesForCanvas(fragment.coordinates as TileCoor);
-		if (fragment.isSelected) checkFragmentForWord();
-	};
+		setWordFragment(wordFragmentArr);
+	}, [tile]);
 
-	const updateWordListTiles = (word: string): void => {
-		let markWordAsFound: WordsToWatch = wordListTiles?.get(word) as WordsToWatch;
-		markWordAsFound.isFound = true;
-		wordListTiles?.set(word, markWordAsFound);
-	};
-
-	const checkFragmentForWord = () => {
-		let wordFragmentSoFar = wordFragment?.join('') as string;
-		if (wordsToWatch && wordsToWatch.has(wordFragmentSoFar)) {
-			updateWordListTiles(wordFragmentSoFar);
-			setWordFragment(null);
+	useEffect(() => {
+		if (tile?.coordinates) {
+			setCoordinatesForCanvas({ ...(tile?.coordinates as TileCoor), isSelected: tile?.isSelected });
 		}
-	};
+	}, [tile?.coordinates]);
 
-	const getCanvasSizeFromBoard = (gameBoardRef: any) => {
-		setCanvasSize(gameBoardRef);
-	};
+	useEffect(() => {
+		setTile(undefined);
+	}, [coordinatesForCanvas]);
+
+	useEffect(() => {
+		if (wordFragment.indexOf('') === -1) {
+			let word = wordFragment?.join('') as string;
+
+			if (wordListTiles?.has(word)) {
+				let wordFound = wordListTiles?.get(word) as WordsToWatch;
+				wordFound.isFound = true;
+
+				let updatedWordList = wordListTiles;
+				updatedWordList.set(word, wordFound);
+				setWordListTiles(updatedWordList);
+			}
+		}
+	}, [wordFragment]);
 
 	return (
 		<div className={classes.grid}>
 			<div className={classes.canvasBoardWrapper}>
-				{gameBoard ? <GameBoard finalGameBoard={gameBoard} getWordFragmentCallback={handleWordFragment} getCanvasSizeFromBoard={getCanvasSizeFromBoard} /> : <div>Loading...</div>}
-				{gameBoardRef ? <GameCanvas size={canvasSize as unknown as number} coordinates={coordinatesForCanvas as TileCoor} /> : <div>Loading...</div>}
+				{gameBoard ? <GameBoard finalGameBoard={gameBoard} onTileClicked={onTileClicked} onGameBoard={getGameBoardRef} /> : <div>Loading...</div>}
+				{canvasSize ? <GameCanvas size={canvasSize as unknown as number} coordinates={coordinatesForCanvas as TileCoor | null} /> : <div>Loading...</div>}
 			</div>
 			{wordListTiles ? <WordList wordList={wordListTiles} /> : <div>Loading...</div>}
 		</div>

@@ -15,37 +15,39 @@ const useStyles = createUseStyles({
 	},
 });
 
-function GameCanvas(props: { size: number; coordinates: TileCoor }) {
+function GameCanvas(props: { size: number; coordinates?: TileCoor | null }) {
 	const classes = useStyles();
 	const myCanvas = useRef<HTMLCanvasElement>(null);
 	const ctx = useRef<CanvasRenderingContext2D>();
-	const [coordinatesSoFar, setCoordinatesSoFar] = useState<Set<TileCoor>>(new Set());
+	const [prevCoor, setPrevCoor] = useState<Map<string, TileCoor>>(new Map() as unknown as Map<string, TileCoor>);
 	useEffect(() => {
-		if (myCanvas !== null) {
-			ctx.current = myCanvas.current?.getContext('2d') as CanvasRenderingContext2D;
-		}
+		ctx.current = myCanvas.current?.getContext('2d') as CanvasRenderingContext2D;
 	}, [myCanvas]);
 
 	useEffect(() => {
-		const gameBoardSizeInPixel = props.size;
-		const numberOfRowsAndColumns = GAME_BOARD_SIZE;
-		const sizeRowsAndColumns = gameBoardSizeInPixel / numberOfRowsAndColumns;
+		if (props.coordinates && ctx.current) {
+			const gameBoardSizeInPixel = props.size;
+			const numberOfRowsAndColumns = GAME_BOARD_SIZE;
+			const sizeRowsAndColumns = gameBoardSizeInPixel / numberOfRowsAndColumns;
+			let coorsToSave = prevCoor;
 
-		if (props.coordinates && ctx.current && !coordinatesSoFar.has(props.coordinates)) {
-			ctx.current.beginPath();
-			ctx.current.arc(props.coordinates.x * sizeRowsAndColumns + 15.8, props.coordinates.y * sizeRowsAndColumns + 15.5, 11, 0, 360);
-			ctx.current.fillStyle = 'rgba(0,0,0,.5)';
-			ctx.current.closePath();
-			ctx.current.fill();
-			const coorsToSave = coordinatesSoFar;
-			coorsToSave.add(props.coordinates);
-			return setCoordinatesSoFar(coorsToSave);
-		}
+			if (prevCoor.get('prev')?.isSelected === props.coordinates.isSelected || !prevCoor.get('prev')) {
+				ctx.current.beginPath();
+				ctx.current.arc(props.coordinates.x * sizeRowsAndColumns + 15.8, props.coordinates.y * sizeRowsAndColumns + 15.5, 11, 0, 360);
+				ctx.current.fillStyle = 'rgba(0,0,0,.5)';
+				ctx.current.closePath();
+				ctx.current.fill();
+				coorsToSave.set('prev', props.coordinates);
+			} else {
+				ctx.current?.clearRect(props.coordinates.x * sizeRowsAndColumns, props.coordinates.y * sizeRowsAndColumns, 30.8, 30.5);
+				let toggleIsSelected = coorsToSave.get('prev') as TileCoor;
+				toggleIsSelected.isSelected = !toggleIsSelected.isSelected;
+				coorsToSave.set('prev', toggleIsSelected);
+			}
 
-		if (props.coordinates && ctx.current && coordinatesSoFar.has(props.coordinates)) {
-			ctx.current.clearRect(props.coordinates.x * sizeRowsAndColumns, props.coordinates.y * sizeRowsAndColumns, 30.8, 30.5);
+			setPrevCoor(coorsToSave);
 		}
-	}, [props.coordinates]);
+	}, [props.coordinates, props.coordinates?.isSelected]);
 
 	return <canvas ref={myCanvas} width={props.size} height={props.size} className={classes.myCanvas}></canvas>;
 }

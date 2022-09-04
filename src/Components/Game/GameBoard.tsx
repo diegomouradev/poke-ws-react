@@ -16,16 +16,15 @@ const useStyles = createUseStyles({
 	},
 });
 
-function GameBoard(props: { finalGameBoard: Tile[][]; getWordFragmentCallback: (fragment: Tile) => void; getCanvasSizeFromBoard: Function }) {
+function GameBoard(props: { finalGameBoard: Tile[][]; onTileClicked: (fragment: Tile) => void; onGameBoard: Function }) {
 	const classes = useStyles();
 	const gameBoardRef = useRef<any>();
 
 	useEffect(() => {
 		if (gameBoardRef) {
-			const size = gameBoardRef.current.clientWidth;
-			props.getCanvasSizeFromBoard(size);
+			props.onGameBoard(gameBoardRef);
 		}
-	}, [props.getCanvasSizeFromBoard, gameBoardRef]);
+	}, []);
 
 	return (
 		<div ref={gameBoardRef} className={classes.myGameBoard}>
@@ -33,7 +32,7 @@ function GameBoard(props: { finalGameBoard: Tile[][]; getWordFragmentCallback: (
 				return (
 					<div key={`row-${i}`} className={`row-${i} ${classes.myRow}`}>
 						{row.map((tile, j): JSX.Element => {
-							return <LetterTile tile={tile} index={j} getWordFragmentCallback={props.getWordFragmentCallback} />;
+							return <LetterTile tile={tile} index={j} onTileClicked={props.onTileClicked} />;
 						})}
 					</div>
 				);

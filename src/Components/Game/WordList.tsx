@@ -41,8 +41,7 @@ const useStyles = createUseStyles({
 });
 
 function WordList(props: { wordList: Map<string, WordsToWatch> }): JSX.Element {
-	let wordListIter = Array.from(props.wordList.values()).flat(1);
-	const [words, setWords] = useState(wordListIter);
+	const [words, setWords] = useState<WordsToWatch[]>();
 	const [showWord, setShowWord] = useState(false);
 
 	const classes = useStyles();
@@ -50,6 +49,12 @@ function WordList(props: { wordList: Map<string, WordsToWatch> }): JSX.Element {
 	const toggleShowWord = (): void => {
 		setShowWord(!showWord);
 	};
+
+	useEffect(() => {
+		let wordListIter = Array.from(props.wordList.values()).flat(1);
+		setWords(wordListIter);
+	}, [props.wordList]);
+
 	return (
 		<>
 			<div className={classes.listWrapper}>
@@ -67,7 +72,7 @@ function WordList(props: { wordList: Map<string, WordsToWatch> }): JSX.Element {
 					/>
 				</form>
 				<ul className={classes.myList}>
-					{words.map((pokemon: WordsToWatch, i) => (
+					{words?.map((pokemon: WordsToWatch, i) => (
 						<li className={classes.myWord}>
 							{showWord ? (
 								<span className={`${pokemon.isFound ? classes.isFound : classes.notFound}`}>{pokemon.name}</span>

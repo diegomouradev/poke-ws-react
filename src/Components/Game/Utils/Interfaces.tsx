@@ -21,6 +21,7 @@ export interface Location {
 export interface TileCoor {
 	x: number;
 	y: number;
+	isSelected?: boolean;
 }
 
 export interface Tile {

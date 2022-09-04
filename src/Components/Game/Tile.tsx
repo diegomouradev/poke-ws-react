@@ -13,19 +13,11 @@ const useStyles = createUseStyles({
 	},
 });
 
-function LetterTile(props: { tile: Tile; index: number; getWordFragmentCallback: (fragment: Tile) => void }): JSX.Element {
-	const [tile, setTile] = useState<Tile>(props.tile);
+function LetterTile(props: { tile: Tile; index: number; onTileClicked: (fragment: Tile) => void }): JSX.Element {
 	const classes = useStyles();
 
-	const handleClick = () => {
-		let tileClicked = tile as Tile;
-		tileClicked.isSelected = !tileClicked.isSelected;
-		setTile(tileClicked);
-		props.getWordFragmentCallback(tileClicked as Tile);
-	};
-
 	return (
-		<div key={props.tile.letter ? `${props.tile.letter}${props.index}` : `tile${props.index}`} className={classes.myTile} onClick={() => handleClick()}>
+		<div key={props.tile.letter ? `${props.tile.letter}${props.index}` : `tile${props.index}`} className={classes.myTile} onClick={() => props.onTileClicked(props.tile)}>
 			{props.tile.letter ? (props.tile.letter as string) : (props.tile as unknown as string)}
 		</div>
 	);
