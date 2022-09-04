@@ -31,20 +31,17 @@ function GameCanvas(props: { size: number; coordinates?: TileCoor | null }) {
 			const sizeRowsAndColumns = gameBoardSizeInPixel / numberOfRowsAndColumns;
 			let coorsToSave = prevCoor;
 
-			if (prevCoor.get('prev')?.isSelected === props.coordinates.isSelected || !prevCoor.get('prev')) {
+			if (props.coordinates.isSelected || !prevCoor.get('prev')) {
 				ctx.current.beginPath();
 				ctx.current.arc(props.coordinates.x * sizeRowsAndColumns + 15.8, props.coordinates.y * sizeRowsAndColumns + 15.5, 11, 0, 360);
 				ctx.current.fillStyle = 'rgba(0,0,0,.5)';
 				ctx.current.closePath();
 				ctx.current.fill();
-				coorsToSave.set('prev', props.coordinates);
 			} else {
 				ctx.current?.clearRect(props.coordinates.x * sizeRowsAndColumns, props.coordinates.y * sizeRowsAndColumns, 30.8, 30.5);
-				let toggleIsSelected = coorsToSave.get('prev') as TileCoor;
-				toggleIsSelected.isSelected = !toggleIsSelected.isSelected;
-				coorsToSave.set('prev', toggleIsSelected);
 			}
 
+			coorsToSave.set('prev', props.coordinates);
 			setPrevCoor(coorsToSave);
 		}
 	}, [props.coordinates, props.coordinates?.isSelected]);
