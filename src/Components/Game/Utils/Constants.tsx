@@ -1,7 +1,7 @@
 import { Direction } from './Interfaces';
 export const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 export const DIRECTIONS: string[] = ['horizontal', 'horizontalBack', 'vertical', 'verticalUp', 'diagonal', 'diagonalBack', 'diagonalUp', 'diagonalUpBack'];
-export const GAME_BOARD_SIZE: number = 20;
+export const GAME_BOARD_SIZE: number = 15;
 
 export const GET_NEXT_TILE: Direction = {
 	horizontal: (x: number, y: number, i: number) => ({

@@ -9,8 +9,13 @@ import GameCanvas from './Game/GameCanvas';
 const useStyles = createUseStyles({
 	grid: {
 		display: 'grid',
-		gridTemplateColumns: 'repeat(2,50%)',
+		gridTemplateColumns: 'repeat(2,1fr)',
 		columnGap: '30px',
+	},
+	'@media (max-width:900px)': {
+		grid: {
+			gridTemplateColumns: '100%',
+		},
 	},
 	canvasBoardWrapper: {
 		position: 'relative',

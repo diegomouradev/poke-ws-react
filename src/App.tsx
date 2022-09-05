@@ -8,17 +8,6 @@ const useStyles = createUseStyles({
 		display: 'grid',
 		gridTemplateColumns: '100%',
 		margin: 0,
-		padding: {
-			top: 50,
-			left: 50,
-			bottom: 50,
-			right: 50,
-		},
-	},
-	grid: {
-		display: 'grid',
-		gridTemplateColumns: 'repeat(2,50%)',
-		columnGap: '30px',
 	},
 });
 

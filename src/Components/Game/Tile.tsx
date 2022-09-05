@@ -10,6 +10,10 @@ const useStyles = createUseStyles({
 		justifyContent: 'center',
 		alignItems: 'center',
 		textTransform: 'uppercase',
+		'&:hover': {
+			borderRadius: 50,
+			backgroundColor: 'rgba(0,0,0,.5)',
+		},
 	},
 });
 
