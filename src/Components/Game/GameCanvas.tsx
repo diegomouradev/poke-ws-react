@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { GAME_BOARD_SIZE } from './Utils/Constants';
 import { TileCoor } from './Utils/Interfaces';
-
+import { fromEvent, Observable, switchMap, takeUntil, map } from 'rxjs';
 const useStyles = createUseStyles({
 	myCanvas: {
 		position: 'absolute',
